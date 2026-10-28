@@ -1,0 +1,25 @@
+# Training: App und Erinnerungsserver als ein Cloudflare Worker
+# Die App Dateien kommen als statische Dateien aus diesem Ordner (siehe .assetsignore),
+# nur /api/* läuft durch den Server Code in push/src.
+# Geheimer Schlüssel: npx wrangler secret put VAPID_PRIVATE_JWK (liegt außerhalb des Repositorys)
+name = "training"
+main = "push/src/index.js"
+compatibility_date = "2026-10-01"
+workers_dev = true
+
+[assets]
+directory = "."
+binding = "ASSETS"
+run_worker_first = ["/api/*"]
+
+[vars]
+VAPID_PUBLIC = "BEkunK64AzzCyfI0MTUOcZUCPaTzutzbN-qQrqvOP6b_hPlYPx8-6km7D5FVISnyB78HqCCkvqt6P987jdNBaiY"
+VAPID_SUBJECT = "https://training.flightsim-tools.workers.dev/"
+
+[[durable_objects.bindings]]
+name = "REMINDER"
+class_name = "Reminder"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Reminder"]

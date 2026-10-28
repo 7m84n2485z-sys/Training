@@ -6,6 +6,8 @@ import * as plans from './views/plans.js';
 import * as train from './views/train.js';
 import * as stats from './views/stats.js';
 import * as settings from './views/settings.js';
+import { checkIdle } from './views/train.js';
+import { sync, idleMs, REMIND_MIN } from './reminder.js';
 
 const TABS = [
   { id: 'plans', label: 'Pläne', icon: icon.plans },
@@ -107,6 +109,15 @@ function tick() {
 }
 setInterval(tick, 1000);
 
+// Vergessenes Training erkennen und den Server aktuell halten
+setInterval(checkIdle, 15000);
+document.addEventListener('visibilitychange', () => {
+  if (!state.active) return;
+  if (document.visibilityState === 'hidden') return sync({ keepalive: true });
+  if (idleMs() < REMIND_MIN * 60000) sync();
+  checkIdle();
+});
+
 document.addEventListener('click', (e) => {
   const tab = e.target.closest('[data-tab]');
   if (tab) return switchTab(tab.dataset.tab);
@@ -150,6 +161,7 @@ addEventListener('resize', () => {
 
 if (location.hash === '#stats' || location.hash === '#plans') nav.tab = location.hash.slice(1);
 render();
+checkIdle();
 
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
   navigator.serviceWorker.register('sw.js').catch((e) => console.warn('Service Worker', e));

@@ -1,0 +1,13 @@
+.git
+.gitignore
+.assetsignore
+.wrangler
+node_modules
+push
+tools
+package.json
+package-lock.json
+wrangler.toml
+README.md
+*.json
+!manifest.webmanifest

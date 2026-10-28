@@ -1,6 +1,6 @@
 // Offline Betrieb: App Dateien liegen im Cache, Updates kommen im Hintergrund
 
-const CACHE = 'training-v1';
+const CACHE = 'training-v2';
 const FILES = [
   './',
   'index.html',
@@ -12,6 +12,7 @@ const FILES = [
   'js/ui.js',
   'js/charts.js',
   'js/picker.js',
+  'js/reminder.js',
   'js/views/plans.js',
   'js/views/train.js',
   'js/views/stats.js',
@@ -47,6 +48,35 @@ self.addEventListener('fetch', (e) => {
         })
         .catch(() => cached);
       return cached || fresh;
+    }),
+  );
+});
+
+// Push Nachricht vom Erinnerungsserver anzeigen
+self.addEventListener('push', (e) => {
+  let msg = { title: 'Training', body: 'Dein Training läuft noch.' };
+  try {
+    if (e.data) msg = { ...msg, ...e.data.json() };
+  } catch {}
+  e.waitUntil(
+    self.registration.showNotification(msg.title, {
+      body: msg.body,
+      tag: msg.tag || 'training',
+      renotify: true,
+      icon: 'icons/icon-192.png',
+      badge: 'icons/icon-192.png',
+      data: { url: './' },
+    }),
+  );
+});
+
+// Antippen öffnet die App, dort erscheint die Frage zum Beenden
+self.addEventListener('notificationclick', (e) => {
+  e.notification.close();
+  e.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
+      const win = list.find((c) => 'focus' in c);
+      return win ? win.focus() : self.clients.openWindow(e.notification.data?.url || './');
     }),
   );
 });
